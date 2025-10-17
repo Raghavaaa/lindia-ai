@@ -1,0 +1,13 @@
+fastapi==0.109.0
+uvicorn==0.27.0
+gunicorn==21.2.0
+pydantic==2.5.3
+python-dotenv==1.0.0
+python-multipart==0.0.6
+
+# Future ML dependencies (commented out for now)
+# transformers==4.36.0
+# torch==2.1.2
+# sentence-transformers==2.2.2
+# numpy==1.24.3
+# pinecone-client==3.0.0

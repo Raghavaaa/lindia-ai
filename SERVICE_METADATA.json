@@ -1,0 +1,193 @@
+{
+  "service_name": "AI Engine",
+  "service_type": "internal",
+  "version": "1.0.0",
+  "description": "Internal AI inference, embedding, and vector search service for LegalIndia",
+  "internal_base_url": "http://ai-engine.railway.internal",
+  "platform": "Railway",
+  "runtime": "Python 3.10",
+  "deployment": {
+    "auto_deploy": true,
+    "repository_branch": "AI-engine",
+    "smoke_tests_enabled": true,
+    "fail_on_smoke_test_failure": true
+  },
+  "scaling": {
+    "type": "autoscaling",
+    "min_instances": 1,
+    "max_instances": 3,
+    "trigger": "CPU > 60%",
+    "runtime_type": "Light dyno"
+  },
+  "required_environment_variables": {
+    "secrets": [
+      {
+        "name": "INTERNAL_JWT_SECRET",
+        "description": "JWT signing secret for internal authentication",
+        "required": true,
+        "mark_as_secret": true,
+        "generation": "openssl rand -base64 32"
+      },
+      {
+        "name": "PRIMARY_MODEL_KEY",
+        "description": "API key for primary AI model provider",
+        "required": true,
+        "mark_as_secret": true
+      },
+      {
+        "name": "SECONDARY_MODEL_KEY",
+        "description": "API key for secondary AI model provider",
+        "required": true,
+        "mark_as_secret": true
+      },
+      {
+        "name": "VECTOR_STORE_URL",
+        "description": "Connection URL for vector database",
+        "required": true,
+        "mark_as_secret": false
+      }
+    ],
+    "configuration": [
+      {
+        "name": "LOG_LEVEL",
+        "description": "Logging level (DEBUG, INFO, WARNING, ERROR)",
+        "required": true,
+        "default": "INFO",
+        "hot_reload": false
+      },
+      {
+        "name": "PRIMARY_PROVIDER",
+        "description": "Primary AI provider (INLEGALBERT, DeepSeek, Grok)",
+        "required": false,
+        "default": "INLEGALBERT",
+        "hot_reload": true,
+        "change_without_redeploy": true
+      },
+      {
+        "name": "FALLBACK_PROVIDERS",
+        "description": "Comma-separated list of fallback providers",
+        "required": false,
+        "default": "DeepSeek,Grok",
+        "hot_reload": true,
+        "change_without_redeploy": true
+      },
+      {
+        "name": "RATE_LIMIT_PER_MINUTE",
+        "description": "Per-tenant per-minute rate limit",
+        "required": false,
+        "default": 100,
+        "hot_reload": true
+      },
+      {
+        "name": "DAILY_QUOTA_LIMIT",
+        "description": "Per-tenant daily quota",
+        "required": false,
+        "default": 10000,
+        "hot_reload": true
+      }
+    ]
+  },
+  "endpoints": [
+    {
+      "method": "POST",
+      "path": "/inference",
+      "description": "Generate AI-powered legal answers",
+      "authentication": "JWT Bearer token required",
+      "rate_limited": true,
+      "timeout": "30 seconds",
+      "max_payload": "5 MB"
+    },
+    {
+      "method": "POST",
+      "path": "/embed",
+      "description": "Generate vector embeddings for documents",
+      "authentication": "JWT Bearer token required",
+      "rate_limited": true,
+      "timeout": "30 seconds",
+      "max_payload": "5 MB"
+    },
+    {
+      "method": "POST",
+      "path": "/search",
+      "description": "Vector similarity search for documents",
+      "authentication": "JWT Bearer token required",
+      "rate_limited": true,
+      "timeout": "30 seconds",
+      "max_payload": "5 MB"
+    },
+    {
+      "method": "GET",
+      "path": "/health",
+      "description": "Health check endpoint",
+      "authentication": "None",
+      "rate_limited": false,
+      "timeout": "5 seconds"
+    }
+  ],
+  "constraints": {
+    "request_timeout_seconds": 30,
+    "max_payload_size_bytes": 5242880,
+    "concurrency_limit_per_worker": 10,
+    "rate_limit_per_minute": 100,
+    "daily_quota_per_tenant": 10000
+  },
+  "monitoring": {
+    "structured_logging": true,
+    "request_id_tracking": true,
+    "cost_estimation": true,
+    "metrics_tracked": [
+      "request_count",
+      "latency_ms",
+      "provider_used",
+      "estimated_cost",
+      "error_rate",
+      "rate_limit_hits",
+      "quota_exceeded"
+    ]
+  },
+  "admin_contact": {
+    "team": "Platform Team",
+    "escalation": "DevOps Lead",
+    "on_call": "PagerDuty rotation",
+    "documentation": "README.md, DEPLOYMENT.md, RUNBOOK.md"
+  },
+  "rollback_procedure": {
+    "method_1": "Railway Dashboard → Deployments → Select previous deployment → Redeploy",
+    "method_2": "Railway CLI: railway rollback",
+    "method_3": "Git revert + push to trigger auto-deploy",
+    "estimated_time": "2-5 minutes"
+  },
+  "runbook_operations": {
+    "rotate_model_keys": "Update PRIMARY_MODEL_KEY or SECONDARY_MODEL_KEY in Railway variables, service auto-restarts",
+    "change_provider_priority": "Update PRIMARY_PROVIDER and FALLBACK_PROVIDERS env vars, NO redeploy required",
+    "scale_manually": "Railway Settings → Resources → Adjust min/max instances",
+    "view_logs": "Railway Dashboard → AI Engine → Logs, use search/filter",
+    "emergency_stop": "Railway Settings → Pause Service",
+    "rollback": "Railway Deployments → Select previous → Redeploy"
+  },
+  "security": {
+    "public_access": false,
+    "internal_only": true,
+    "jwt_required": true,
+    "secrets_in_code": false,
+    "secrets_in_railway_store": true,
+    "rate_limiting": true,
+    "quota_enforcement": true
+  },
+  "cost_estimate": {
+    "infrastructure_monthly": "$5-15 (Railway Light dyno, 1-3 instances)",
+    "ai_provider_variable": "Depends on usage and provider",
+    "total_estimated": "$10-30/month + AI costs"
+  },
+  "documentation_files": [
+    "README.md - Complete service documentation",
+    "DEPLOYMENT.md - Step-by-step deployment guide",
+    "RUNBOOK.md - Admin operations and troubleshooting",
+    "TESTING.md - Testing procedures and examples",
+    "SERVICE_METADATA.json - This file, service metadata"
+  ],
+  "created_date": "2024-01-15",
+  "last_updated": "2024-01-15",
+  "maintained_by": "Platform Team"
+}
+
