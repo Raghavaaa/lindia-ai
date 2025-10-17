@@ -1,0 +1,69 @@
+╔═══════════════════════════════════════════════════════════════╗
+║          AI ENGINE - QUICK DEPLOYMENT REFERENCE               ║
+╚═══════════════════════════════════════════════════════════════╝
+
+📁 SERVICE LOCATION
+/Users/raghavankarthik/ai-law-junior/ai-engine/
+
+🎯 READY TO DEPLOY
+✓ All files created and tested locally
+✓ Git repository initialized and committed
+✓ All 4 endpoints working (health, inference, embed, search)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🚀 DEPLOY IN 3 STEPS:
+
+1️⃣  PUSH TO GITHUB (2 min)
+   cd /Users/raghavankarthik/ai-law-junior/ai-engine
+   git remote add origin https://github.com/YOUR_USERNAME/ai-law-engine.git
+   git push -u origin main
+
+2️⃣  DEPLOY ON RAILWAY (3 min)
+   → Go to: https://railway.app/
+   → New Project → Deploy from GitHub
+   → Select: ai-law-engine
+   → Railway auto-deploys! ✨
+
+3️⃣  VERIFY (1 min)
+   → Visit: https://your-service.railway.app/health
+   → Should return: {"status": "ok", ...}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔧 RAILWAY ENVIRONMENT VARIABLES:
+   MODEL_PROVIDER=InLegalBERT
+   BACKEND_URL=https://api.legalindia.ai
+   ENVIRONMENT=production
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📡 ENDPOINTS:
+
+  GET  /health     → Service status & uptime
+  POST /inference  → AI legal query processing
+  POST /embed      → Generate document embeddings
+  POST /search     → Semantic search in documents
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🧪 TEST LOCALLY:
+   cd /Users/raghavankarthik/ai-law-junior/ai-engine
+   uvicorn main:app --reload --port 8080
+   curl http://localhost:8080/health
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📚 DOCUMENTATION:
+   • DEPLOY_TO_RAILWAY.md  - Detailed deployment guide
+   • DEPLOYMENT_SUMMARY.md - Complete status & next steps
+   • README.md             - Full service documentation
+   • test_api.py           - Automated testing script
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ STATUS: Ready for Railway deployment!
+
+Your backend, frontend, and database are untouched.
+This is a standalone AI service that will connect to them.
+
