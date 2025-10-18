@@ -4,6 +4,7 @@ gunicorn==21.2.0
 pydantic==2.5.3
 python-dotenv==1.0.0
 python-multipart==0.0.6
+httpx==0.26.0
 
 # Future ML dependencies (commented out for now)
 # transformers==4.36.0

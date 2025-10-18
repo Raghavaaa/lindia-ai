@@ -9,10 +9,21 @@ from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
 from datetime import datetime
 import os
+import logging
 from dotenv import load_dotenv
+
+# Import provider manager
+from providers import ProviderManager
 
 # Load environment variables
 load_dotenv()
+
+# Configure logging
+logging.basicConfig(
+    level=os.getenv("LOG_LEVEL", "INFO"),
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
+logger = logging.getLogger(__name__)
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -20,6 +31,10 @@ app = FastAPI(
     description="AI/ML service for legal document processing and intelligent querying",
     version="1.0.0"
 )
+
+# Initialize provider manager
+provider_manager = ProviderManager()
+logger.info("Provider manager initialized")
 
 # CORS Configuration - Allow internal domains only
 ALLOWED_ORIGINS = [
@@ -94,10 +109,14 @@ async def health_check():
     """
     uptime = (datetime.now() - SERVICE_START_TIME).total_seconds()
     
+    # Get active providers
+    active_providers = [p.provider_name for p in provider_manager.providers]
+    provider_str = ", ".join(active_providers) if active_providers else "None"
+    
     return HealthResponse(
         status="ok",
         uptime_seconds=uptime,
-        model_provider=os.getenv("MODEL_PROVIDER", "InLegalBERT"),
+        model_provider=provider_str,
         service="ai-engine",
         timestamp=datetime.now().isoformat()
     )
@@ -108,26 +127,30 @@ async def inference(request: InferenceRequest):
     """
     Receives lawyer queries, processes through AI model, returns answer
     
-    This endpoint will integrate with InLegalBERT or other legal AI models
-    Currently returns placeholder response
+    Uses provider manager with automatic fallback between providers
     """
     try:
-        # Placeholder logic - will be replaced with actual model inference
-        model_provider = os.getenv("MODEL_PROVIDER", "InLegalBERT")
+        logger.info(f"Inference request received: query='{request.query[:50]}...'")
         
-        # TODO: Integrate actual model inference
-        # answer = await run_model_inference(request.query, request.context)
+        # Use provider manager with automatic fallback
+        response = await provider_manager.inference(
+            query=request.query,
+            context=request.context,
+            max_tokens=request.max_tokens,
+            temperature=request.temperature
+        )
         
-        answer = f"Inference working. Query received: '{request.query}'. Model: {model_provider}. This is a placeholder response that will be replaced with actual legal AI inference."
+        logger.info(f"Inference successful with provider: {response.provider_name}")
         
         return InferenceResponse(
-            answer=answer,
-            model=model_provider,
-            tokens_used=50,  # Placeholder
-            confidence=0.95  # Placeholder
+            answer=response.answer,
+            model=f"{response.provider_name}/{response.model_name}",
+            tokens_used=response.tokens_used,
+            confidence=response.confidence
         )
     
     except Exception as e:
+        logger.error(f"Inference failed: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Inference failed: {str(e)}")
 
 
@@ -136,26 +159,24 @@ async def generate_embeddings(request: EmbedRequest):
     """
     Generates vector embeddings for documents or text
     
-    This endpoint will use InLegalBERT or similar model for embeddings
-    Currently returns placeholder embeddings
+    Uses provider manager with automatic fallback
     """
     try:
-        model = request.model or os.getenv("MODEL_PROVIDER", "InLegalBERT")
+        logger.info(f"Embedding request received for {len(request.texts)} texts")
         
-        # Placeholder logic - will be replaced with actual embedding generation
-        # TODO: Integrate actual embedding model
-        # embeddings = await generate_text_embeddings(request.texts, model)
+        # Use provider manager with automatic fallback
+        response = await provider_manager.generate_embeddings(request.texts)
         
-        # Generate dummy embeddings (768 dimensions typical for BERT models)
-        dummy_embeddings = [[0.1] * 768 for _ in request.texts]
+        logger.info(f"Embeddings generated with provider: {response.provider_name}")
         
         return EmbedResponse(
-            embeddings=dummy_embeddings,
-            model=model,
-            dimension=768
+            embeddings=response.embeddings,
+            model=f"{response.provider_name}/{response.model_name}",
+            dimension=response.dimension
         )
     
     except Exception as e:
+        logger.error(f"Embedding generation failed: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Embedding generation failed: {str(e)}")
 
 
@@ -168,6 +189,8 @@ async def semantic_search(request: SearchRequest):
     Currently returns placeholder results
     """
     try:
+        logger.info(f"Search request: query='{request.query}', top_k={request.top_k}")
+        
         # Placeholder logic - will be replaced with actual vector search
         # TODO: Integrate vector database (Pinecone, Weaviate, or FAISS)
         # results = await vector_search(request.query, request.top_k, request.filter)
@@ -187,6 +210,8 @@ async def semantic_search(request: SearchRequest):
             for i in range(1, min(request.top_k + 1, 6))
         ]
         
+        logger.info(f"Search completed, returning {len(dummy_results)} results")
+        
         return SearchResponse(
             results=dummy_results,
             query=request.query,
@@ -194,21 +219,44 @@ async def semantic_search(request: SearchRequest):
         )
     
     except Exception as e:
+        logger.error(f"Search failed: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Search failed: {str(e)}")
+
+
+@app.get("/providers/status")
+async def provider_status():
+    """Get status of all configured providers"""
+    try:
+        health_status = await provider_manager.health_check_all()
+        stats = provider_manager.get_stats()
+        
+        return {
+            "provider_health": health_status,
+            "statistics": stats,
+            "timestamp": datetime.now().isoformat()
+        }
+    except Exception as e:
+        logger.error(f"Provider status check failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Status check failed: {str(e)}")
 
 
 @app.get("/")
 async def root():
     """Root endpoint with service information"""
+    stats = provider_manager.get_stats()
+    
     return {
         "service": "Legal India AI Engine",
         "version": "1.0.0",
         "status": "running",
+        "active_providers": stats["active_providers"],
+        "provider_order": stats["provider_order"],
         "endpoints": {
             "health": "/health",
             "inference": "/inference",
             "embed": "/embed",
-            "search": "/search"
+            "search": "/search",
+            "provider_status": "/providers/status"
         }
     }
 
