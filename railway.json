@@ -6,9 +6,7 @@
   "deploy": {
     "startCommand": "gunicorn -w 2 -k uvicorn.workers.UvicornWorker main:app --bind 0.0.0.0:$PORT",
     "healthcheckPath": "/health",
-    "healthcheckTimeout": 100,
-    "restartPolicyType": "on-failure",
-    "restartPolicyMaxRetries": 3
+    "healthcheckTimeout": 100
   },
   "service": {
     "name": "ai-engine",
