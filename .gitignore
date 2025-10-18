@@ -1,52 +1,36 @@
-# Python
+# Cache directories for model downloads
+cache/
+transformers_cache/
+.cache/
+models/
+
+# Python cache
 __pycache__/
-*.py[cod]
-*$py.class
-*.so
+*.pyc
+*.pyo
+*.pyd
 .Python
-env/
-venv/
-ENV/
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
+*.so
 
 # Environment variables
 .env
 .env.local
+.env.production
+
+# Logs
+*.log
+logs/
 
 # IDE
 .vscode/
 .idea/
 *.swp
 *.swo
-*~
 
-# MacOS
+# OS
 .DS_Store
+Thumbs.db
 
-# Logs
-*.log
-
-# Model files (if storing locally)
-models/
-*.pt
-*.bin
-*.onnx
-
-# Testing
-.pytest_cache/
-.coverage
-htmlcov/
+# Temporary files
+*.tmp
+*.temp
