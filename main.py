@@ -117,7 +117,7 @@ async def health_check():
         status="ok",
         uptime_seconds=uptime,
         model_provider=provider_str,
-        service="ai-engine",
+        service="ai-engine-with-real-inlegalbert",
         timestamp=datetime.now().isoformat()
     )
 
