@@ -24,6 +24,11 @@ class Settings(BaseSettings):
     PRIMARY_MODEL_KEY: str  # Required - no default
     SECONDARY_MODEL_KEY: str  # Required - no default
     
+    # API Keys for AI providers
+    HUGGINGFACE_API_KEY: str = ""  # For InLegalBERT
+    DEEPSEEK_API_KEY: str = ""  # For DeepSeek
+    GROK_API_KEY: str = ""  # For Grok
+    
     # Provider configuration - can be changed via env var
     PRIMARY_PROVIDER: str = "INLEGALBERT"
     FALLBACK_PROVIDERS: str = "DeepSeek,Grok"  # Comma-separated
