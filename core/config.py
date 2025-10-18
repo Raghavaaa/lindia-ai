@@ -30,8 +30,8 @@ class Settings(BaseSettings):
     GROK_API_KEY: str = ""  # For Grok
     
     # Provider configuration - can be changed via env var
-    PRIMARY_PROVIDER: str = "INLEGALBERT"
-    FALLBACK_PROVIDERS: str = "DeepSeek,Grok"  # Comma-separated
+    PRIMARY_PROVIDER: str = "DeepSeek"
+    FALLBACK_PROVIDERS: str = "INLEGALBERT,Grok"  # Comma-separated
     
     @property
     def fallback_provider_list(self) -> List[str]:
