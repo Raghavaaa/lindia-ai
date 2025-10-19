@@ -17,8 +17,8 @@ logger = logging.getLogger(__name__)
 class InLegalBERTProvider(BaseProvider):
     """Provider for InLegalBERT legal AI model"""
     
-    def __init__(self):
-        super().__init__()
+    def __init__(self, api_key: str, model_name: str, config: Dict[str, Any] = None):
+        super().__init__(api_key, model_name, config)
         self.tokenizer = None
         self.model = None
         self._load_model()
