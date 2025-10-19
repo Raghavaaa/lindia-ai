@@ -32,9 +32,14 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Initialize provider manager
-provider_manager = ProviderManager()
-logger.info("Provider manager initialized")
+# Initialize provider manager with error handling
+try:
+    provider_manager = ProviderManager()
+    logger.info("Provider manager initialized successfully")
+except Exception as e:
+    logger.error(f"Failed to initialize provider manager: {e}")
+    # Create a minimal fallback
+    provider_manager = None
 
 # CORS Configuration - Allow internal domains only
 ALLOWED_ORIGINS = [
@@ -110,8 +115,11 @@ async def health_check():
     uptime = (datetime.now() - SERVICE_START_TIME).total_seconds()
     
     # Get active providers
-    active_providers = [p.provider_name for p in provider_manager.providers]
-    provider_str = ", ".join(active_providers) if active_providers else "None"
+    if provider_manager and provider_manager.providers:
+        active_providers = [p.provider_name for p in provider_manager.providers]
+        provider_str = ", ".join(active_providers)
+    else:
+        provider_str = "None (initialization failed)"
     
     return HealthResponse(
         status="ok",
@@ -131,6 +139,10 @@ async def inference(request: InferenceRequest):
     """
     try:
         logger.info(f"Inference request received: query='{request.query[:50]}...'")
+        
+        # Check if provider manager is available
+        if not provider_manager:
+            raise HTTPException(status_code=503, detail="AI providers not available - service initialization failed")
         
         # Use provider manager with automatic fallback
         response = await provider_manager.inference(
@@ -243,22 +255,32 @@ async def provider_status():
 @app.get("/")
 async def root():
     """Root endpoint with service information"""
-    stats = provider_manager.get_stats()
-    
-    return {
-        "service": "Legal India AI Engine",
-        "version": "1.0.0",
-        "status": "running",
-        "active_providers": stats["active_providers"],
-        "provider_order": stats["provider_order"],
-        "endpoints": {
-            "health": "/health",
-            "inference": "/inference",
-            "embed": "/embed",
-            "search": "/search",
-            "provider_status": "/providers/status"
+    if provider_manager:
+        stats = provider_manager.get_stats()
+        return {
+            "service": "Legal India AI Engine",
+            "version": "1.0.0",
+            "status": "running",
+            "active_providers": stats["active_providers"],
+            "provider_order": stats["provider_order"],
+            "endpoints": {
+                "health": "/health",
+                "inference": "/inference",
+                "embed": "/embed",
+                "search": "/search",
+                "provider_status": "/providers/status"
+            }
         }
-    }
+    else:
+        return {
+            "service": "Legal India AI Engine",
+            "version": "1.0.0",
+            "status": "initialization_failed",
+            "error": "Provider manager failed to initialize",
+            "endpoints": {
+                "health": "/health"
+            }
+        }
 
 
 if __name__ == "__main__":
