@@ -8,13 +8,8 @@ import httpx
 import logging
 from .base_provider import BaseProvider, ProviderResponse, EmbeddingResponse
 
-# Import transformers for local InLegalBERT
-try:
-    from transformers import AutoTokenizer, AutoModel
-    import torch
-    TRANSFORMERS_AVAILABLE = True
-except ImportError:
-    TRANSFORMERS_AVAILABLE = False
+# Skip transformers imports to stay under 4GB limit
+TRANSFORMERS_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
 
@@ -29,34 +24,11 @@ class InLegalBERTProvider(BaseProvider):
         self._load_model()
     
     def _load_model(self):
-        """Load LegalBERT model from Hugging Face Hub with caching"""
-        if not TRANSFORMERS_AVAILABLE:
-            logger.warning("Transformers not available. Install transformers and torch for LegalBERT.")
-            return
-            
-        try:
-            import os
-            cache_dir = "./cache"
-            
-            # Ensure cache directory exists
-            if not os.path.exists(cache_dir):
-                os.makedirs(cache_dir)
-                logger.info(f"Created cache directory: {cache_dir}")
-            
-            logger.info("Loading LegalBERT from Hugging Face Hub...")
-            self.tokenizer = AutoTokenizer.from_pretrained(
-                "nlpaueb/legal-bert-base-uncased", 
-                cache_dir=cache_dir
-            )
-            self.model = AutoModel.from_pretrained(
-                "nlpaueb/legal-bert-base-uncased", 
-                cache_dir=cache_dir
-            )
-            logger.info("LegalBERT model loaded successfully from Hugging Face Hub")
-        except Exception as e:
-            logger.error(f"Failed to load LegalBERT model: {e}")
-            self.tokenizer = None
-            self.model = None
+        """Skip local model loading to stay under 4GB limit - use API only"""
+        logger.info("Skipping local LegalBERT model loading to stay under Railway 4GB limit")
+        logger.info("Using API-only mode for LegalBERT inference")
+        self.tokenizer = None
+        self.model = None
     
     @property
     def provider_name(self) -> str:
@@ -201,13 +173,8 @@ Based on InLegalBERT's training on 5.4 million Indian legal documents:
         # LegalBERT workflow: Enhance query and pass to DeepSeek
         enhanced_query = self._enhance_query_for_deepseek(query, context)
         
-        # Try local LegalBERT model first for enhanced analysis
-        if self.model is not None and self.tokenizer is not None:
-            try:
-                logger.info("Using local LegalBERT model to enhance query for DeepSeek")
-                return await self._local_inference_with_enhancement(query, enhanced_query, max_tokens, temperature)
-            except Exception as e:
-                logger.warning(f"Local LegalBERT inference failed: {e}, falling back to enhanced query")
+        # Skip local model loading to stay under 4GB limit
+        logger.info("Using API-only LegalBERT mode to stay under Railway 4GB limit")
         
         # Return enhanced query for DeepSeek processing
         return ProviderResponse(

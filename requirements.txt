@@ -6,7 +6,6 @@ python-dotenv==1.0.0
 python-multipart==0.0.6
 httpx==0.26.0
 
-# ML dependencies for InLegalBERT
-transformers==4.36.0
-torch==2.1.2
+# Lightweight dependencies only (no heavy ML models)
+# transformers and torch removed to stay under 4GB limit
 numpy==1.24.3
