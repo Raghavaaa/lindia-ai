@@ -1,0 +1,27 @@
+#!/bin/bash
+# Pre-Commit Git Hook - Quick V&V Checks
+# This hook runs before any commit
+
+echo "🔍 PRE-COMMIT VERIFICATION"
+echo "=========================="
+
+# Quick checks before commit
+echo "Running quick validation..."
+
+# Check for secrets in staged files
+if git diff --cached --name-only | grep -E '\.(py|js|ts|tsx|md)$' | xargs grep -l -E 'sk-[a-zA-Z0-9]{20,}|hf_[a-zA-Z0-9]{20,}' 2>/dev/null; then
+    echo "❌ SECRET DETECTION: Hardcoded secrets found in staged files"
+    echo "🔒 Commit blocked - Remove secrets before committing"
+    exit 1
+fi
+
+# Check for large files
+large_files=$(git diff --cached --name-only | xargs ls -la 2>/dev/null | awk '$5 > 10485760 {print $9 " (" $5 " bytes)"}')
+if [ ! -z "$large_files" ]; then
+    echo "⚠️  LARGE FILES DETECTED:"
+    echo "$large_files"
+    echo "Consider using Git LFS for files > 10MB"
+fi
+
+echo "✅ Quick validation passed"
+exit 0

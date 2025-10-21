@@ -1,0 +1,20 @@
+#!/bin/bash
+# Pre-Push Git Hook - Automated V&V Gatekeeping
+# This hook runs before any push to ensure code quality
+
+echo "🚀 ACTIVATING PRE-DEPLOYMENT VERIFICATION MODE"
+echo "🔒 Google QA Gate: Zero Tolerance for Broken Builds"
+echo "=============================================="
+
+# Run the V&V system
+python3 pre_deployment_vv.py
+
+# Check exit code
+if [ $? -eq 0 ]; then
+    echo "✅ VERIFICATION PASSED - Proceeding with push"
+    exit 0
+else
+    echo "❌ VERIFICATION FAILED - Push blocked"
+    echo "🔒 Push blocked by V&V system. Fix issues before proceeding."
+    exit 1
+fi
